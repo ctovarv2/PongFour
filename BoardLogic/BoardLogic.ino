@@ -1,24 +1,28 @@
 
 #include <Adafruit_NeoPixel.h>
 
-#define PIN 13 //LED strip
+#define LED_PIN 13 
 #define NUM_LEDS 30
 #define COLUMNS 6
 #define ROWS 5
+#define DROP_DELAY 300
 
 int led_array[ROWS][COLUMNS];
 bool cont = true;
 int currPlayer = 0;
+Adafruit_NeoPixel strip;
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
+uint32_t playerOneColor;
+uint32_t playerTwoColor;
+uint32_t offColor;
 
 void setup() {
   Serial.begin(9600);
-  
+  strip = Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
   strip.begin();
   strip.show();
   
-  randomSeed(analogRead(0)); //seed rand with pin 0(random)
+  randomSeed(analogRead(0));
   
   //initialize matrix to 0s
   for(int i = 0; i < ROWS; ++i){
@@ -26,7 +30,10 @@ void setup() {
       led_array[i][j] = 0;
     }
   }
-  
+
+  playerOneColor = strip.Color(255, 0, 0);
+  playerTwoColor = strip.Color(0, 0, 255);
+  offColor = strip.Color(0,0,0);
 }
 void printBoard(){//For debugging
   Serial.println();
@@ -118,9 +125,6 @@ void setPlayerMove(int playerNum, int column){//Sets move in the matrix
       }
     }
   }
-  else{
-    
-  }
 }
 int checkNE(int c_row, int c_col){
   int countP1 = 0;
@@ -164,8 +168,6 @@ int checkNW(int c_row, int c_col){
   else if(countP2 == 4){
     return 2;
   }
-  
-  
   return 0;
 }
 
@@ -216,59 +218,13 @@ bool checkWin(int p_num){//Checks board for a win
     return false;
 }
 
-int getUpper(int column){
-  switch(column){
-    case 0:
-      return 4;
-    case 1:
-      return 5;
-    case 2:
-      return 14;
-    case 3:
-      return 15;
-    case 4:
-      return 24;
-    case 5:
-      return 25;
-    default:
-      break; 
-  }
-  return -1;
-}
-
-int getLower(int column){
-  switch(column){
-    case 0:
-      return 0;
-    case 1:
-      return 9;
-    case 2:
-      return 10;
-    case 3:
-      return 19;
-    case 4:
-      return 20;
-    case 5:
-      return 29;
-    default:
-      break; 
-  }
-  return -1;
-}
-
 void placeMarker(int player, int col){
-  int r;
-  int g;
-  int b;
+  uint32_t color;
   
   if(player == 1){
-    r = 255;
-    g = 0;
-    b = 0;
+    color = playerOneColor;
   }else{
-    r = 0;
-    g = 0;
-    b = 255;
+    color = playerTwoColor;
   }
 
   for(int i = 0; i < ROWS; ++i){
@@ -281,36 +237,36 @@ void placeMarker(int player, int col){
   for(int j = ROWS-1; j >= 0; --j){
     if(!led_array[j][col] == 1 || !led_array[j][col] == 2){
       if(col == 1 || col == 3 || col == 5){//Increasing 
-        strip.setPixelColor((col*ROWS + ROWS-1) - j, r, g, b);
+        strip.setPixelColor((col*ROWS + ROWS-1) - j, color);
         strip.show();
-        delay(300);
-        strip.setPixelColor((col*ROWS + ROWS-1) - j, 0, 0, 0);
+        delay(DROP_DELAY);
+        strip.setPixelColor((col*ROWS + ROWS-1) - j, offColor);
         strip.show();
       }
       else{//decreasing, 0 2 4
-        strip.setPixelColor((col*ROWS) + j, r, g, b);
+        strip.setPixelColor((col*ROWS) + j, color);
         strip.show();
-        delay(300);
-        strip.setPixelColor((col*ROWS) + j, 0, 0, 0);
+        delay(DROP_DELAY);
+        strip.setPixelColor((col*ROWS) + j, offColor);
         strip.show();
       }
       
     }
     else if(led_array[j][col] == player){
       if(col == 1 || col == 3 || col == 5){//Increasing 
-        strip.setPixelColor((col*ROWS + ROWS-1) - j, r, g, b);
+        strip.setPixelColor((col*ROWS + ROWS-1) - j, color);
         strip.show();
       }
       else{
-        strip.setPixelColor((col*ROWS) + j, r, g, b);
+        strip.setPixelColor((col*ROWS) + j, color);
         strip.show();
       }
     }
   }
 }
-void resetStrip(){//Sets strip to off
+void resetStrip(){
   for(int i = 0; i < NUM_LEDS; ++i){
-    strip.setPixelColor(i, 0, 0, 0);
+    strip.setPixelColor(i, offColor);
     strip.show();
   }
 }
@@ -324,31 +280,25 @@ int randPlayer(){//for testing purposes
 }
 
 void flashWin(int one, int two, int three, int four, int player){
-  int r;
-  int g;
-  int b;
+  uint32_t color;
   if(player == 1){
-    r = 255;
-    g = 0;
-    b = 0;
+    color = playerOneColor;
   }
   else{
-    r = 0;
-    g = 0;
-    b = 255;
+    color = playerTwoColor;
   }
   
   for(int i = 0; i < 6; ++i){
-    strip.setPixelColor(one, r, g, b);
-    strip.setPixelColor(two, r, g, b);
-    strip.setPixelColor(three, r, g, b);
-    strip.setPixelColor(four, r, g, b);
+    strip.setPixelColor(one, color);
+    strip.setPixelColor(two, color);
+    strip.setPixelColor(three, color);
+    strip.setPixelColor(four, color);
     strip.show();
     delay(500);
-    strip.setPixelColor(one, 0, 0, 0);
-    strip.setPixelColor(two, 0, 0, 0);
-    strip.setPixelColor(three, 0, 0, 0);
-    strip.setPixelColor(four, 0, 0, 0);
+    strip.setPixelColor(one, offColor);
+    strip.setPixelColor(two, offColor);
+    strip.setPixelColor(three, offColor);
+    strip.setPixelColor(four, offColor);
     strip.show();
     delay(500);
     
@@ -362,7 +312,6 @@ void loop() {
     bool win = checkWin(currPlayer);
     printBoard();
     if(win == true){
-      //flashWin();
       delay(5000);
       cont = false;
     }
@@ -391,10 +340,5 @@ void loop() {
     while(1){ 
       //button hold down = cont => true
       }
-  }
-  
+  } 
 }
-
-
-//Function for win flash
-
