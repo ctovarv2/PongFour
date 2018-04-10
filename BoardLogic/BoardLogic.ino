@@ -1,16 +1,19 @@
-
 #include <Adafruit_NeoPixel.h>
 
-#define LED_PIN 13 
-#define NUM_LEDS 30
+#define LED_PIN 13        //For Board LEDS
+#define LED2_PIN 10       //For player turn strip
+#define NUM_LEDS 30       //For Board
+#define NUM2_LEDS 10      //For Player turn Strip
 #define COLUMNS 6
 #define ROWS 5
-#define DROP_DELAY 300
+#define DROP_DELAY 300    //Delay for dropping effect
 
 int led_array[ROWS][COLUMNS];
 bool cont = true;
 int currPlayer = 0;
+
 Adafruit_NeoPixel strip;
+Adafruit_NeoPixel playerTurn_strip;
 
 uint32_t playerOneColor;
 uint32_t playerTwoColor;
@@ -19,8 +22,11 @@ uint32_t offColor;
 void setup() {
   Serial.begin(9600);
   strip = Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+  playerTurn_strip = Adafruit_NeoPixel(NUM2_LEDS, LED2_PIN, NEO_GRB + NEO_KHZ800);
   strip.begin();
+  playerTurn_strip.begin();
   strip.show();
+  playerTurn_strip.show();
   
   randomSeed(analogRead(0));
   
@@ -306,6 +312,17 @@ void flashWin(int one, int two, int three, int four, int player){
   }
   resetStrip();
 }
+void setPlayerTurnColor(int curr_p){
+  for(int i = 0; i < NUM2_LEDS; ++i){
+    if(curr_p == 1){
+      playerTurn_strip.setPixelColor(i, playerOneColor);
+    }
+    else if(curr_p == 2){
+      playerTurn_strip.setPixelColor(i, playerTwoColor);
+    }
+  }
+  playerTurn_strip.show();
+}
 
 void loop() {
   if(cont){
@@ -327,8 +344,9 @@ void loop() {
         
         delay(3000);
         currPlayer = randPlayer();
-        placeMarker(currPlayer, randPos());
-        //placeMarker(inputPlayer - '0', inputPosition - '0');
+        setPlayerTurnColor(currPlayer);
+        placeMarker(currPlayer, randPos());//Places randomly
+        //placeMarker(inputPlayer - '0', inputPosition - '0');//Input from command line
         delay(1000);
       //}
       
