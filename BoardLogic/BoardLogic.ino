@@ -1,9 +1,9 @@
 #include <Adafruit_NeoPixel.h>
 
 #define LED_PIN 13        //For Board LEDS
-#define LED2_PIN 10       //For player turn strip
+#define LED2_PIN 7       //For player turn strip
 #define NUM_LEDS 30       //For Board
-#define NUM2_LEDS 10      //For Player turn Strip
+#define NUM2_LEDS 5      //For Player turn Strip
 #define COLUMNS 6
 #define ROWS 5
 #define DROP_DELAY 300    //Delay for dropping effect
@@ -12,8 +12,8 @@ int led_array[ROWS][COLUMNS];
 bool cont = true;
 int currPlayer = 0;
 
-Adafruit_NeoPixel strip;
-Adafruit_NeoPixel playerTurn_strip;
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel playerTurn = Adafruit_NeoPixel(NUM2_LEDS, LED2_PIN, NEO_GRB + NEO_KHZ800);
 
 uint32_t playerOneColor;
 uint32_t playerTwoColor;
@@ -21,12 +21,12 @@ uint32_t offColor;
 
 void setup() {
   Serial.begin(9600);
-  strip = Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
-  playerTurn_strip = Adafruit_NeoPixel(NUM2_LEDS, LED2_PIN, NEO_GRB + NEO_KHZ800);
+  //strip = Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+  //playerTurn = Adafruit_NeoPixel(NUM2_LEDS, LED2_PIN, NEO_GRB + NEO_KHZ800);
   strip.begin();
-  playerTurn_strip.begin();
   strip.show();
-  playerTurn_strip.show();
+  playerTurn.begin();
+  playerTurn.show();
   
   randomSeed(analogRead(0));
   
@@ -41,6 +41,7 @@ void setup() {
   playerTwoColor = strip.Color(0, 0, 255);
   offColor = strip.Color(0,0,0);
 }
+
 void printBoard(){//For debugging
   Serial.println();
   Serial.print("---------------------------------------------------");
@@ -299,13 +300,25 @@ void flashWin(int one, int two, int three, int four, int player){
     strip.setPixelColor(two, color);
     strip.setPixelColor(three, color);
     strip.setPixelColor(four, color);
+    playerTurn.setPixelColor(0, color);
+    playerTurn.setPixelColor(1, color);
+    playerTurn.setPixelColor(2, color);
+    playerTurn.setPixelColor(3, color);
+    playerTurn.setPixelColor(4, color);
     strip.show();
+    playerTurn.show();
     delay(500);
     strip.setPixelColor(one, offColor);
     strip.setPixelColor(two, offColor);
     strip.setPixelColor(three, offColor);
     strip.setPixelColor(four, offColor);
+    playerTurn.setPixelColor(0, offColor);
+    playerTurn.setPixelColor(1, offColor);
+    playerTurn.setPixelColor(2, offColor);
+    playerTurn.setPixelColor(3, offColor);
+    playerTurn.setPixelColor(4, offColor);
     strip.show();
+    playerTurn.show();
     delay(500);
     
     
@@ -315,13 +328,13 @@ void flashWin(int one, int two, int three, int four, int player){
 void setPlayerTurnColor(int curr_p){
   for(int i = 0; i < NUM2_LEDS; ++i){
     if(curr_p == 1){
-      playerTurn_strip.setPixelColor(i, playerOneColor);
+      playerTurn.setPixelColor(i, 255,0,0);
     }
     else if(curr_p == 2){
-      playerTurn_strip.setPixelColor(i, playerTwoColor);
+      playerTurn.setPixelColor(i, 0,0,255);
     }
   }
-  playerTurn_strip.show();
+  playerTurn.show();
 }
 
 void loop() {
